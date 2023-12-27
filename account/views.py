@@ -15,8 +15,20 @@ from .forms import OrderForm, CreateUserForm
 from .filters import OrderFilter
 
 def loginPage(request):
-     context={}
-     return render(request,'account/login.html',context)
+        if request.method == 'POST':
+            username = request.POST.get('username')
+            password =request.POST.get('password')
+
+            user = authenticate(request, username=username, password=password)
+
+            if user is not None:
+                login(request, user)
+                return redirect('home')
+            else:
+                messages.info(request, 'Username OR password is incorrect')
+
+        context = {}
+        return render(request, 'account/login.html', context)
 
 def registerPage(request):
     form = CreateUserForm()
@@ -33,8 +45,8 @@ def registerPage(request):
     return render(request, 'account/register.html', context)
 
 def logoutUser(request):
-     context={}
-     return render(request,'account/login.html',context)
+	logout(request)
+	return redirect('login')
 
 def Home(request):
     orders = Order.objects.all()
