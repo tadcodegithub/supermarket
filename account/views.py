@@ -15,20 +15,23 @@ from .forms import OrderForm, CreateUserForm
 from .filters import OrderFilter
 
 def loginPage(request):
-        if request.method == 'POST':
-            username = request.POST.get('username')
-            password =request.POST.get('password')
+        if request.user.is_authenticated:
+             return redirect('home')
+        else:
+            if request.method == 'POST':
+                username = request.POST.get('username')
+                password =request.POST.get('password')
 
-            user = authenticate(request, username=username, password=password)
+                user = authenticate(request, username=username, password=password)
 
-            if user is not None:
-                login(request, user)
-                return redirect('home')
-            else:
-                messages.info(request, 'Username OR password is incorrect')
+                if user is not None:
+                    login(request, user)
+                    return redirect('home')
+                else:
+                    messages.info(request, 'Username OR password is incorrect')
 
-        context = {}
-        return render(request, 'account/login.html', context)
+            context = {}
+            return render(request, 'account/login.html', context)
 
 def registerPage(request):
     form = CreateUserForm()
@@ -47,7 +50,7 @@ def registerPage(request):
 def logoutUser(request):
 	logout(request)
 	return redirect('login')
-
+@login_required(login_url='login')
 def Home(request):
     orders = Order.objects.all()
     customers = Customer.objects.all()
@@ -59,9 +62,11 @@ def Home(request):
 	'total_orders':total_orders,'delivered':delivered,
 	'pending':pending }
     return render(request,"account/dashboard.html", context)
+@login_required(login_url='login')
 def Products(request):
     products = Product.objects.all()
     return render(request,"account/products.html", {'products':products})
+@login_required(login_url='login')
 def Customers(request,pk_test):
     customer = Customer.objects.get(id=pk_test)
     orders = customer.order_set.all()
@@ -71,6 +76,7 @@ def Customers(request,pk_test):
     context = {'customer':customer, 'orders':orders, 
                'order_count':order_count, 'myFliter':myFliter}
     return render(request, 'account/customers.html',context)
+@login_required(login_url='login')
 def createOrder(request,pk):
     OrderFormSet = inlineformset_factory(Customer, Order, fields=('product', 'status'), extra=3)
     customer = Customer.objects.get(id=pk)
@@ -86,6 +92,7 @@ def createOrder(request,pk):
 
     context = {'form':formset}
     return render(request, 'account/order_form.html', context)
+@login_required(login_url='login')
 def updateOrder(request, pk):
 
 	order = Order.objects.filter(id=pk).first()
@@ -99,7 +106,7 @@ def updateOrder(request, pk):
 
 	context = {'form':form}
 	return render(request, 'account/order_form.html', context)
-
+@login_required(login_url='login')
 def deleteOrder(request, pk):
     order = Order.objects.filter(id=pk).first()
     print("order customer id ",order.customer)
