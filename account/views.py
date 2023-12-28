@@ -8,31 +8,30 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 
 # Create your views here.
 from .models import *
 from .forms import OrderForm, CreateUserForm
 from .filters import OrderFilter
-
+from .decorators import unauthenticated_user, allowed_users, admin_only
+@unauthenticated_user
 def loginPage(request):
-        if request.user.is_authenticated:
-             return redirect('home')
-        else:
-            if request.method == 'POST':
-                username = request.POST.get('username')
-                password =request.POST.get('password')
+        if request.method == 'POST':
+            username = request.POST.get('username')
+            password =request.POST.get('password')
 
-                user = authenticate(request, username=username, password=password)
+            user = authenticate(request, username=username, password=password)
 
-                if user is not None:
-                    login(request, user)
-                    return redirect('home')
-                else:
-                    messages.info(request, 'Username OR password is incorrect')
+            if user is not None:
+                login(request, user)
+                return redirect('home')
+            else:
+                messages.info(request, 'Username OR password is incorrect')
 
-            context = {}
-            return render(request, 'account/login.html', context)
-
+        context = {}
+        return render(request, 'account/login.html', context)
+@unauthenticated_user
 def registerPage(request):
     if request.user.is_authenticated:
          return redirect('home')
@@ -65,6 +64,9 @@ def Home(request):
 	'total_orders':total_orders,'delivered':delivered,
 	'pending':pending }
     return render(request,"account/dashboard.html", context)
+def userPage(request):
+	context = {}
+	return render(request, 'account/user.html', context)
 @login_required(login_url='login')
 def Products(request):
     products = Product.objects.all()
