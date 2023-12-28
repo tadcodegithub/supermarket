@@ -67,14 +67,32 @@ def Home(request):
 	'total_orders':total_orders,'delivered':delivered,
 	'pending':pending }
     return render(request,"account/dashboard.html", context)
-def userPage(request):
-	context = {}
-	return render(request, 'account/user.html', context)
+
 @login_required(login_url='login')
+@allowed_users(allowed_roles=['customer'])
+def userPage(request):
+	orders = request.user.customer.order_set.all()
+
+	total_orders = orders.count()
+	delivered = orders.filter(status='Delivered').count()
+	pending = orders.filter(status='Pending').count()
+
+	print('ORDERS:', orders)
+
+	context = {'orders':orders, 'total_orders':total_orders,
+	'delivered':delivered,'pending':pending}
+	return render(request, 'account/user.html', context)
+
+
+@login_required(login_url='login')
+@allowed_users(allowed_roles=['admin'])
 def Products(request):
     products = Product.objects.all()
     return render(request,"account/products.html", {'products':products})
+
+
 @login_required(login_url='login')
+@allowed_users(allowed_roles=['admin'])
 def Customers(request,pk_test):
     customer = Customer.objects.get(id=pk_test)
     orders = customer.order_set.all()
@@ -84,7 +102,10 @@ def Customers(request,pk_test):
     context = {'customer':customer, 'orders':orders, 
                'order_count':order_count, 'myFliter':myFliter}
     return render(request, 'account/customers.html',context)
+
+
 @login_required(login_url='login')
+@allowed_users(allowed_roles=['admin'])
 def createOrder(request,pk):
     OrderFormSet = inlineformset_factory(Customer, Order, fields=('product', 'status'), extra=3)
     customer = Customer.objects.get(id=pk)
@@ -100,7 +121,10 @@ def createOrder(request,pk):
 
     context = {'form':formset}
     return render(request, 'account/order_form.html', context)
+
+
 @login_required(login_url='login')
+@allowed_users(allowed_roles=['admin'])
 def updateOrder(request, pk):
 
 	order = Order.objects.filter(id=pk).first()
@@ -114,7 +138,9 @@ def updateOrder(request, pk):
 
 	context = {'form':form}
 	return render(request, 'account/order_form.html', context)
+
 @login_required(login_url='login')
+@allowed_users(allowed_roles=['admin'])
 def deleteOrder(request, pk):
     order = Order.objects.filter(id=pk).first()
     print("order customer id ",order.customer)
