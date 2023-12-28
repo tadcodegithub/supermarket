@@ -71,17 +71,25 @@ def Home(request):
 @login_required(login_url='login')
 @allowed_users(allowed_roles=['customer'])
 def userPage(request):
-	orders = request.user.customer.order_set.all()
+    try:
+        orders = request.user.customer.order_set.all()
 
-	total_orders = orders.count()
-	delivered = orders.filter(status='Delivered').count()
-	pending = orders.filter(status='Pending').count()
+        total_orders = orders.count()
+        delivered = orders.filter(status='Delivered').count()
+        pending = orders.filter(status='Pending').count()
 
-	print('ORDERS:', orders)
+        print('ORDERS:', orders)
 
-	context = {'orders':orders, 'total_orders':total_orders,
-	'delivered':delivered,'pending':pending}
-	return render(request, 'account/user.html', context)
+        context = {'orders':orders, 'total_orders':total_orders,
+        'delivered':delivered,'pending':pending}
+    except:
+        
+        total_orders =0
+        delivered =0
+        pending = 0
+        context = {'total_orders':total_orders,
+        'delivered':delivered,'pending':pending}
+    return render(request, 'account/user.html', context)
 
 
 @login_required(login_url='login')
