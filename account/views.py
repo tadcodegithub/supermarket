@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.forms import inlineformset_factory
 from django.contrib.auth.forms import UserCreationForm
 
@@ -15,6 +15,9 @@ from .models import *
 from .forms import OrderForm, CreateUserForm, CustomerForm
 from .filters import OrderFilter
 from .decorators import unauthenticated_user, allowed_users, admin_only
+filee={'one':'this is one','two':'this is two','three':'theree'}
+def index(request):
+     return JsonResponse(filee)
 @unauthenticated_user
 def loginPage(request):
         if request.method == 'POST':
